@@ -114,6 +114,31 @@ function newRoom(rid, prefs) {
 }
 
 let userCommands = {
+    "kick": function(name) {
+        if (this.private.runlevel < 2) return; // Only mods+ can kick
+
+        let user = this.room.getUserByName(name);
+        if (!user) {
+            this.socket.emit("commandFail", { reason: "userNotFound" });
+            return;
+        }
+
+        this.room.emit("kick", { guid: user.guid }); // Notify others
+        user.disconnect(); // Disconnect the user
+    },
+    "ban": function(name) {
+        if (this.private.runlevel < 2) return; // Only mods+ can ban
+
+        let user = this.room.getUserByName(name);
+        if (!user) {
+            this.socket.emit("commandFail", { reason: "userNotFound" });
+            return;
+        }
+
+        Ban.banUser(user.getIp(), user.guid); // Ban the user
+        this.room.emit("ban", { guid: user.guid }); // Notify others
+        user.disconnect(); // Disconnect the user
+    },
     "godmode": function(word) {
         let success = word == this.room.prefs.godword;
         if (success) this.private.runlevel = 3;
