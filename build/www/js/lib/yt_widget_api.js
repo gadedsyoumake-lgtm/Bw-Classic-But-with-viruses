@@ -1,0 +1,1 @@
+// YouTube Widget API placeholder
